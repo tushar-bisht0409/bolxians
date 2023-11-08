@@ -126,6 +126,7 @@ export async function POST(
     if (response !== undefined && response.length > 1) {
       memoryManager.writeToHistory("" + response.trim(), companionKey);
 
+      console.log("AAA: ",response);
       await prismadb.companion.update({
         where: {
           id: params.chatId
@@ -141,8 +142,18 @@ export async function POST(
         }
       });
     }
+    const encoder = new TextEncoder();
+     const responseBytes = encoder.encode(response);
+       const s1 = new ReadableStream({
+           start(controller) {
+            controller.enqueue(responseBytes);
+            controller.close();
+          }, });  
+          return new StreamingTextResponse(s1);
 
-    return new StreamingTextResponse(s);
+
+
+    // return new StreamingTextResponse(s);
   } catch (error) {
     return new NextResponse("Internal Error", { status: 500 });
   }
